@@ -1,18 +1,22 @@
 import { IconType } from "react-icons";
 
 interface AuthSocialButtonProps {
-  icon: IconType;
-  onClick: () => void;
+  // Определение интерфейса свойств компонента AuthSocialButton
+  icon: IconType; // Тип иконки для отображения
+  onClick: () => void; // Обработчик события клика
 }
 
 const AuthSocialButton: React.FC<AuthSocialButtonProps> = ({
-  icon: Icon,
+  // Компонент AuthSocialButton, принимающий свойства AuthSocialButtonProps
+  icon: Icon, // Иконка, переданная в свойстве icon
   onClick,
 }) => {
+  // Деструктуризация свойств компонента AuthSocialButton
   return (
+    // Возвращаем кнопку для авторизации через социальные сети
     <button
-      type="button"
-      onClick={onClick}
+      type="button" // Тип кнопки
+      onClick={onClick} // Обработчик клика кнопки
       className="
       inline-flex 
       w-full 
