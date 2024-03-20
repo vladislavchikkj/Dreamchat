@@ -48,7 +48,7 @@ const Button: React.FC<ButtonProps> = ({
           "border-rose-600 hover:bg-rose-600 focus-visible:outline-rose-600",
         !secondary && // Если у кнопки не вторичный стиль и не опасный стиль, применить стили по умолчанию
           !danger &&
-          "bg-pink-700 hover:bg-pink-800 focus-visible:outline-pink-800"
+          "bg-pink-600 hover:bg-pink-800 focus-visible:outline-pink-800"
       )}>
       {children}
     </button>
