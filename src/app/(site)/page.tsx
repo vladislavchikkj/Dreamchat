@@ -29,7 +29,7 @@ export default function Home() {
           text-3xl
           font-bold
           tracking-tight
-          Otext-gray-900
+          text-gray-900
           ">
           Sing in to your account
         </h2>

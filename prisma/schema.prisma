@@ -1,8 +1,19 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// /*
+// Этот файл содержит схему базы данных Prisma.
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Он описывает структуру данных вашей базы данных MongoDB, включая модели (User, Account, Conversation, Message) и их поля.
+
+// Каждая модель представляет собой сущность в базе данных с определенными атрибутами.
+
+// Например:
+// - Модель User представляет собой пользователя вашего приложения, с полями такими как имя, электронная почта, хешированный пароль и т.д.
+// - Модель Conversation представляет собой беседу, в которой участвуют пользователи, с полями такими как название беседы и список пользователей.
+// - Модель Message представляет собой сообщение, отправленное в рамках беседы, с полями такими как текст сообщения, изображение, отправитель и т.д.
+
+// Отношения между моделями также описываются с помощью директив @relation.
+
+// Этот файл используется Prisma для автоматической генерации клиентского кода (prisma-client-js), который обеспечивает взаимодействие с базой данных.
+// */
 
 generator client {
   provider = "prisma-client-js"
@@ -10,74 +21,89 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL") // Подключение к MongoDB базе данных, указанной в переменной окружения DATABASE_URL
 }
 
+// Модель пользователя
 model User {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  name           String?
-  email          String?   @unique
-  emailVerified  DateTime?
-  image          String?
-  hashedPassword String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  name           String? // Имя пользователя
+  email          String?   @unique // Электронная почта пользователя, уникальное поле
+  emailVerified  DateTime? // Дата подтверждения электронной почты
+  image          String? // URL изображения пользователя
+  hashedPassword String? // Хешированный пароль пользователя
+  createdAt      DateTime  @default(now()) // Дата создания пользователя
+  updatedAt      DateTime  @updatedAt // Дата последнего обновления пользователя
 
+  // Связь с беседами
   conversationIds String[]       @db.ObjectId
   conversations   Conversation[] @relation(fields: [conversationIds], references: [id])
 
+  // Связь с прочитанными сообщениями
   seenMessageIds String[]  @db.ObjectId
   seenMessages   Message[] @relation("Seen", fields: [seenMessageIds], references: [id])
 
+  // Связь с учетными записями
   accounts Account[]
+
+  // Связь с отправленными сообщениями
   messages Message[]
 }
 
+// Модель учетной записи
 model Account {
   id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.ObjectId
-  access_token      String? @db.ObjectId
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.ObjectId
-  session_state     String?
+  userId            String  @db.ObjectId // Идентификатор пользователя
+  type              String // Тип учетной записи
+  provider          String // Провайдер учетной записи
+  providerAccountId String // Идентификатор учетной записи провайдера
+  refresh_token     String? @db.ObjectId // Токен обновления
+  access_token      String? @db.ObjectId // Токен доступа
+  expires_at        Int? // Время истечения токена
+  token_type        String? // Тип токена
+  scope             String? // Область видимости токена
+  id_token          String? @db.ObjectId // Идентификатор токена
+  session_state     String? // Состояние сессии
 
+  // Связь с пользователем
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId]) // Уникальность по сочетанию провайдера и идентификатора учетной записи провайдера
 }
 
+// Модель беседы
 model Conversation {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt     DateTime @default(now())
-  lastMessageAt DateTime @default(now())
-  name          String?
-  isGroup       Boolean?
+  createdAt     DateTime @default(now()) // Дата создания беседы
+  lastMessageAt DateTime @default(now()) // Дата последнего сообщения
+  name          String? // Название беседы
+  isGroup       Boolean? // Флаг групповой беседы
 
+  // Связь с сообщениями
   messagesIds String[]  @db.ObjectId
   messages    Message[]
 
+  // Связь с пользователями
   userIds String[] @db.ObjectId
   users   User[]   @relation(fields: [userIds], references: [id])
 }
 
+// Модель сообщения
 model Message {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  body      String?
-  image     String?
-  createdAt DateTime @default(now())
+  body      String? // Текст сообщения
+  image     String? // Изображение
+  createdAt DateTime @default(now()) // Дата создания сообщения
 
+  // Связь с прочитанными сообщениями
   seenIds String[] @db.ObjectId
   seen    User[]   @relation("Seen", fields: [seenIds], references: [id])
 
+  // Связь с беседой
   conversationId String       @db.ObjectId
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
+  // Связь с отправителем
   senderId String @db.ObjectId
   sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
