@@ -22,6 +22,13 @@ export default function Home() {
           className="mx-auto w-auto"
           src="/images/logo.png"
         />
+        <Image
+          alt="Logo"
+          height="200"
+          width="200"
+          className="mx-auto w-auto"
+          src="/images/text-logo.png"
+        />
         <h2
           className="
           mt-6
