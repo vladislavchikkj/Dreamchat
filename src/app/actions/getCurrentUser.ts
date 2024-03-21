@@ -15,21 +15,18 @@ const getCurrentUser = async () => {
     }
 
     const currentUser = await prisma.user.findUnique({
-      // Поиск пользователя в базе данных Prisma по email
       where: {
         email: session.user.email as string, // Использование email из сессии в качестве условия поиска
       },
     });
 
     if (!currentUser) {
-      // Если пользователь не найден
-      return null; // Возвращается null
+      return null;
     }
 
-    return currentUser; // Возвращается найденный пользователь
+    return currentUser;
   } catch (error: any) {
-    // Обработка ошибок
-    return null; // Возвращается null в случае ошибки
+    return null;
   }
 };
 
