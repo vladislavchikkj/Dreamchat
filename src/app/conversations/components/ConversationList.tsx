@@ -1,96 +1,151 @@
-// Этот компонент ConversationList представляет собой боковую панель для списка разговоров.
-// Он принимает начальные элементы списка разговоров и отображает их, используя компонент
-// ConversationBox. Состояние isOpen определяет, отображается ли боковая панель,
-// а conversationId указывает на выбранный разговор.
-
 "use client";
 
+import { User } from "@prisma/client";
+import clsx from "clsx";
+import { find } from "lodash";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { MdOutlineGroupAdd } from "react-icons/md";
+
 import useConversation from "@/app/hooks/useConversation";
+import { pusherClient } from "@/app/libs/pusher";
 import { FullConversationType } from "@/app/types";
 import GroupChatModal from "@/components/modals/GroupChatModal";
-import clsx from "clsx";
-import { User } from "next-auth";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { MdOutlineGroupAdd } from "react-icons/md";
 import ConversationBox from "./ConversationBox";
 
+// Props для компонента ConversationList
 interface ConversationListProps {
-  initialItems: FullConversationType[];
-  users: User[];
-  title?: string;
+  initialItems: FullConversationType[]; // Начальные элементы бесед
+  users: User[]; // Пользователи
+  title?: string; // Заголовок (необязательный)
 }
 
+// Компонент ConversationList
 const ConversationList: React.FC<ConversationListProps> = ({
-  initialItems, // Начальные элементы списка разговоров
+  initialItems,
   users,
 }) => {
-  const [items, setItems] = useState(initialItems); // Состояние для элементов списка разговоров и функция для их обновления
+  // Состояния для списка элементов бесед и модального окна
+  const [items, setItems] = useState(initialItems);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const router = useRouter(); // Получение объекта router с помощью хука useRouter
+  // Хуки для маршрута и сессии
+  const router = useRouter();
+  const session = useSession();
 
-  const { conversationId, isOpen } = useConversation(); // Получение идентификатора разговора и состояния открытости разговора с помощью пользовательского хука useConversation
+  // Получение данных о беседе с помощью пользовательского хука useConversation
+  const { conversationId, isOpen } = useConversation();
+
+  // Вычисление ключа Pusher для подписки
+  const pusherKey = useMemo(() => {
+    return session.data?.user?.email;
+  }, [session.data?.user?.email]);
+
+  // Эффект для подписки на обновления бесед от Pusher
+  useEffect(() => {
+    if (!pusherKey) {
+      return;
+    }
+
+    pusherClient.subscribe(pusherKey);
+
+    const updateHandler = (conversation: FullConversationType) => {
+      setItems((current) =>
+        current.map((currentConversation) => {
+          if (currentConversation.id === conversation.id) {
+            return {
+              ...currentConversation,
+              messages: conversation.messages,
+            };
+          }
+
+          return currentConversation;
+        })
+      );
+    };
+
+    const newHandler = (conversation: FullConversationType) => {
+      setItems((current) => {
+        if (find(current, { id: conversation.id })) {
+          return current;
+        }
+
+        return [conversation, ...current];
+      });
+    };
+
+    const removeHandler = (conversation: FullConversationType) => {
+      setItems((current) => {
+        return [...current.filter((convo) => convo.id !== conversation.id)];
+      });
+    };
+
+    // Привязка обработчиков событий Pusher для обновления, новой беседы и удаления
+    pusherClient.bind("conversation:update", updateHandler);
+    pusherClient.bind("conversation:new", newHandler);
+    pusherClient.bind("conversation:remove", removeHandler);
+
+    // Отписка от Pusher при размонтировании компонента или изменении маршрута
+    return () => {
+      pusherClient.unsubscribe(pusherKey);
+    };
+  }, [pusherKey, router]);
 
   return (
     <>
+      {/* Модальное окно для создания групповой беседы */}
       <GroupChatModal
         users={users}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-      <aside // Боковая панель для списка разговоров
+      {/* Боковая панель для отображения списка бесед */}
+      <aside
         className={clsx(
-          // Применение классов к боковой панели с помощью функции clsx
           `
-            fixed 
-            inset-y-0 
-            pb-20
-            lg:pb-0
-            lg:left-20 
-            lg:w-80 
-            lg:block
-            overflow-y-auto 
-            border-r 
-            border-gray-200 
-          `,
-          isOpen ? "hidden" : "block w-full left-0" // Условное применение классов в зависимости от состояния открытости разговора
+        fixed 
+        inset-y-0 
+        pb-20
+        lg:pb-0
+        lg:left-20 
+        lg:w-80 
+        lg:block
+        overflow-y-auto 
+        border-r 
+        border-gray-200 
+      `,
+          isOpen ? "hidden" : "block w-full left-0"
         )}>
         <div className="px-5">
-          {/* Контейнер для содержимого боковой панели */}
           <div className="flex justify-between mb-4 pt-4">
-            {/* Верхняя часть боковой панели */}
             <div className="text-2xl font-bold text-neutral-800">Messages</div>
-            {/* Заголовок раздела сообщений */}
             <div
               onClick={() => setIsModalOpen(true)}
               className="
-              rounded-full 
-              p-2 
-              bg-gray-100 
-              text-gray-600 
-              cursor-pointer 
-              hover:opacity-75 
-              transition
-            ">
-              <MdOutlineGroupAdd size={20} /> {/* Иконка добавления группы */}
+                rounded-full 
+                p-2 
+                bg-gray-100 
+                text-gray-600 
+                cursor-pointer 
+                hover:opacity-75 
+                transition
+              ">
+              <MdOutlineGroupAdd size={20} />
             </div>
           </div>
-          {items.map(
-            (
-              item // Отображение элементов списка разговоров с помощью компонента ConversationBox
-            ) => (
-              <ConversationBox
-                key={item.id} // Использование id в качестве ключа, чтобы обеспечить уникальность
-                data={item} // Передача данных разговора в компонент ConversationBox
-                selected={conversationId === item.id} // Установка флага выбранного разговора
-              />
-            )
-          )}
+          {/* Отображение списка бесед */}
+          {items.map((item) => (
+            <ConversationBox
+              key={item.id}
+              data={item}
+              selected={conversationId === item.id}
+            />
+          ))}
         </div>
       </aside>
     </>
   );
 };
 
-export default ConversationList; // Экспорт компонента ConversationList
+export default ConversationList;

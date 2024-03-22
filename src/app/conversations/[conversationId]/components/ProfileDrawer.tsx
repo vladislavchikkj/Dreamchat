@@ -8,10 +8,10 @@ import { IoClose, IoTrash } from "react-icons/io5";
 
 import useOtherUser from "@/app/hooks/useOtherUser";
 
+import useActiveList from "@/app/hooks/useActiveList";
 import Avatar from "@/components/Avatar";
 import AvatarGroup from "@/components/AvatarGroup";
 import ConfirmModal from "./ConfirmModal";
-// import ConfirmModal from "./ConfirmModal";
 
 interface ProfileDrawerProps {
   isOpen: boolean;
@@ -37,18 +37,16 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
     return data.name || otherUser.name;
   }, [data.name, otherUser.name]);
 
-  //   const { members } = useActiveList();
-  //   const isActive = members.indexOf(otherUser?.email!) !== -1;
+  const { members } = useActiveList();
+  const isActive = members.indexOf(otherUser?.email!) !== -1;
 
   const statusText = useMemo(() => {
     if (data.isGroup) {
       return `${data.users.length} members`;
     }
 
-    //     return isActive ? "Active" : "Offline";
-    //   }, [data, isActive]);
-    return "Active";
-  }, [data]);
+    return isActive ? "Active" : "Offline";
+  }, [data, isActive]);
 
   return (
     <>

@@ -1,3 +1,4 @@
+import ActiveStatus from "@/components/ActiveStatus";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AuthContext from "./context/AuthContext";
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthContext>
           <ToasterContext />
+          <ActiveStatus />
           {children}
         </AuthContext>
       </body>
