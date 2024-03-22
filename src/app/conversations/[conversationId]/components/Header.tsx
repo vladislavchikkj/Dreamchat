@@ -9,6 +9,7 @@ import { HiEllipsisHorizontal } from "react-icons/hi2";
 import useOtherUser from "@/app/hooks/useOtherUser";
 import Avatar from "@/components/Avatar";
 import AvatarGroup from "@/components/AvatarGroup";
+import ProfileDrawer from "./ProfileDrawer";
 
 interface HeaderProps {
   conversation: Conversation & {
@@ -34,11 +35,11 @@ const Header: React.FC<HeaderProps> = ({ conversation }) => {
 
   return (
     <>
-      {/* <ProfileDrawer
+      <ProfileDrawer
         data={conversation}
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-      /> */}
+      />
       <div
         className="
         bg-white 
@@ -59,8 +60,8 @@ const Header: React.FC<HeaderProps> = ({ conversation }) => {
             className="
             lg:hidden 
             block 
-            text-sky-500 
-            hover:text-sky-600 
+            text-slate-500 
+            hover:text-slate-600 
             transition 
             cursor-pointer
           ">
@@ -82,9 +83,9 @@ const Header: React.FC<HeaderProps> = ({ conversation }) => {
           size={32}
           onClick={() => setDrawerOpen(true)}
           className="
-          text-sky-500
+          text-slate-500
           cursor-pointer
-          hover:text-sky-600
+          hover:text-slate-600
           transition
         "
         />
