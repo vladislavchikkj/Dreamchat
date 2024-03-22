@@ -7,19 +7,26 @@
 
 import useConversation from "@/app/hooks/useConversation";
 import { FullConversationType } from "@/app/types";
+import GroupChatModal from "@/components/modals/GroupChatModal";
 import clsx from "clsx";
+import { User } from "next-auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MdOutlineGroupAdd } from "react-icons/md";
 import ConversationBox from "./ConversationBox";
 
 interface ConversationListProps {
-  initialItems: FullConversationType[]; // Начальные элементы списка разговоров
+  initialItems: FullConversationType[];
+  users: User[];
+  title?: string;
 }
+
 const ConversationList: React.FC<ConversationListProps> = ({
   initialItems, // Начальные элементы списка разговоров
+  users,
 }) => {
   const [items, setItems] = useState(initialItems); // Состояние для элементов списка разговоров и функция для их обновления
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const router = useRouter(); // Получение объекта router с помощью хука useRouter
 
@@ -27,6 +34,11 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
   return (
     <>
+      <GroupChatModal
+        users={users}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
       <aside // Боковая панель для списка разговоров
         className={clsx(
           // Применение классов к боковой панели с помощью функции clsx
@@ -51,7 +63,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             <div className="text-2xl font-bold text-neutral-800">Messages</div>
             {/* Заголовок раздела сообщений */}
             <div
-              // onClick={() => setIsModalOpen(true)}
+              onClick={() => setIsModalOpen(true)}
               className="
               rounded-full 
               p-2 
